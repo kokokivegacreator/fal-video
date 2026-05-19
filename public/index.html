@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>fal.ai Video Generator</title>
+<style>
+:root{
+  --bg:#0f0f13;--bg2:#16161d;--bg3:#1e1e28;--card:#1c1c26;
+  --border:#2a2a38;--border2:#38384a;
+  --text:#e8e8f0;--text2:#9090a8;--text3:#5a5a72;
+  --indigo:#6366f1;--indigo2:#818cf8;--indigo-bg:rgba(99,102,241,.12);
+  --green:#22c55e;--green-bg:rgba(34,197,94,.12);
+  --amber:#f59e0b;--amber-bg:rgba(245,158,11,.12);
+  --red:#ef4444;--red-bg:rgba(239,68,68,.12);
+  --blue:#38bdf8;
+  --radius:8px;--radius-lg:12px;--radius-xl:16px;
+  --font:system-ui,-apple-system,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;font-family:var(--font)}
+body{background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+
+/* TOP BAR */
+.topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 20px;height:52px;display:flex;align-items:center;gap:12px;flex-shrink:0}
+.logo{display:flex;align-items:center;gap:8px}
+.logo-icon{width:28px;height:28px;background:linear-gradient(135deg,#6366f1,#ec4899);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px}
+.logo-text{font-size:15px;font-weight:700;letter-spacing:-.3px}
+.logo-badge{font-size:10px;background:var(--indigo-bg);color:var(--indigo2);border:1px solid rgba(99,102,241,.3);border-radius:4px;padding:1px 6px;font-weight:600}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:8px}
+.api-status{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text3)}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--text3)}
+.dot.green{background:var(--green)}
+
+/* LAYOUT */
+.layout{display:flex;flex:1;overflow:hidden}
+
+/* SIDEBAR */
+.sidebar{width:340px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+.sidebar-inner{flex:1;overflow-y:auto;padding:16px}
+.sidebar-inner::-webkit-scrollbar{width:4px}
+.sidebar-inner::-webkit-scrollbar-track{background:transparent}
+.sidebar-inner::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+
+/* FIELD */
+.field{margin-bottom:14px}
+.label{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;display:flex;align-items:center;gap:5px}
+.label-hint{font-size:10px;color:var(--text3);text-transform:none;font-weight:400;letter-spacing:0}
+
+/* UPLOAD */
+.drop-zone{border:1.5px dashed var(--border2);border-radius:var(--radius-lg);padding:20px;text-align:center;cursor:pointer;transition:.2s;position:relative;background:var(--bg3)}
+.drop-zone:hover,.drop-zone.drag{border-color:var(--indigo);background:var(--indigo-bg)}
+.drop-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.drop-icon{font-size:28px;margin-bottom:6px}
+.drop-text{font-size:12px;color:var(--text2)}
+.drop-hint{font-size:11px;color:var(--text3);margin-top:3px}
+.preview-wrap{position:relative;border-radius:var(--radius);overflow:hidden}
+.preview-img{width:100%;border-radius:var(--radius);display:block;max-height:200px;object-fit:cover}
+.preview-remove{position:absolute;top:6px;right:6px;background:rgba(0,0,0,.6);border:none;color:#fff;width:22px;height:22px;border-radius:50%;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center}
+
+/* TEXTAREA */
+.textarea{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:9px 11px;font-size:13px;resize:none;outline:none;transition:.2s;line-height:1.5}
+.textarea:focus{border-color:var(--indigo);box-shadow:0 0 0 3px rgba(99,102,241,.15)}
+.char-count{text-align:right;font-size:10px;color:var(--text3);margin-top:3px}
+
+/* MODEL SELECTOR */
+.model-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.model-opt{background:var(--bg3);border:1.5px solid var(--border);border-radius:var(--radius);padding:8px 10px;cursor:pointer;transition:.15s}
+.model-opt:hover{border-color:var(--border2)}
+.model-opt.active{border-color:var(--indigo);background:var(--indigo-bg)}
+.model-name{font-size:12px;font-weight:600;color:var(--text)}
+.model-sub{font-size:10px;color:var(--text3);margin-top:1px}
+
+/* SELECT / ROW */
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.select{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:7px 10px;font-size:13px;outline:none;cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%235a5a72'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center}
+.select:focus{border-color:var(--indigo)}
+
+/* GENERATE BUTTON */
+.btn-generate{width:100%;padding:11px;border-radius:var(--radius-lg);background:linear-gradient(135deg,#6366f1,#8b5cf6);border:none;color:#fff;font-size:14px;font-weight:700;cursor:pointer;transition:.15s;display:flex;align-items:center;justify-content:center;gap:7px;margin-top:6px}
+.btn-generate:hover{opacity:.9;transform:translateY(-1px)}
+.btn-generate:disabled{opacity:.4;cursor:default;transform:none}
+.btn-generate .spinner{width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite}
+
+/* MAIN */
+.main{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:20px}
+.main::-webkit-scrollbar{width:4px}
+.main::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+
+/* SECTION HEAD */
+.section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.section-title{font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px}
+.section-count{font-size:11px;color:var(--text3)}
+
+/* ACTIVE JOB */
+.active-job{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-xl);padding:16px;display:flex;gap:14px;align-items:flex-start}
+.job-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.job-icon.gen{background:var(--indigo-bg);animation:pulse 1.5s ease-in-out infinite}
+.job-icon.done{background:var(--green-bg)}
+.job-icon.error{background:var(--red-bg)}
+.job-body{flex:1;min-width:0}
+.job-title{font-size:13px;font-weight:600;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.job-status{font-size:11px;color:var(--text2);margin-bottom:8px}
+.progress-track{height:4px;background:var(--bg3);border-radius:2px;overflow:hidden}
+.progress-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,#6366f1,#8b5cf6);transition:width .4s}
+.progress-fill.done{background:var(--green)}
+.progress-fill.error{background:var(--red)}
+.log-list{margin-top:8px;display:flex;flex-direction:column;gap:3px}
+.log-item{font-size:11px;color:var(--text3);display:flex;align-items:center;gap:6px}
+.log-item::before{content:'›';color:var(--text3)}
+
+/* GALLERY */
+.gallery-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
+.video-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-xl);overflow:hidden;transition:.2s}
+.video-card:hover{border-color:var(--border2);transform:translateY(-2px)}
+.video-thumb{position:relative;aspect-ratio:16/9;background:var(--bg3);overflow:hidden}
+.video-thumb video{width:100%;height:100%;object-fit:cover}
+.video-thumb .play-btn{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.3);opacity:0;transition:.2s;cursor:pointer;font-size:32px}
+.video-card:hover .play-btn{opacity:1}
+.video-info{padding:10px 12px}
+.video-prompt{font-size:12px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:4px}
+.video-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.chip{font-size:10px;padding:2px 7px;border-radius:4px;font-weight:600}
+.chip.model{background:var(--indigo-bg);color:var(--indigo2)}
+.chip.dur{background:rgba(56,189,248,.12);color:var(--blue)}
+.chip.ratio{background:var(--bg3);color:var(--text3)}
+.video-date{font-size:10px;color:var(--text3);margin-top:4px}
+.video-actions{display:flex;gap:6px;padding:0 12px 10px}
+.btn-action{flex:1;padding:6px;border-radius:var(--radius);border:1px solid var(--border);background:transparent;color:var(--text2);font-size:11px;font-weight:600;cursor:pointer;transition:.15s;display:flex;align-items:center;justify-content:center;gap:4px;text-decoration:none}
+.btn-action:hover{background:var(--bg3);color:var(--text)}
+.btn-action.primary{background:var(--indigo-bg);border-color:rgba(99,102,241,.3);color:var(--indigo2)}
+.btn-action.primary:hover{background:var(--indigo);color:#fff}
+
+/* EMPTY */
+.empty{text-align:center;padding:60px 20px;color:var(--text3)}
+.empty-icon{font-size:48px;margin-bottom:12px;opacity:.5}
+.empty-text{font-size:14px;color:var(--text2);margin-bottom:4px}
+.empty-sub{font-size:12px}
+
+/* TOAST */
+.toast-wrap{position:fixed;bottom:20px;right:20px;display:flex;flex-direction:column;gap:8px;z-index:999}
+.toast{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:10px 14px;font-size:13px;color:var(--text);box-shadow:0 4px 20px rgba(0,0,0,.4);animation:slideIn .2s ease;display:flex;align-items:center;gap:8px}
+.toast.error{border-color:rgba(239,68,68,.4);color:var(--red)}
+.toast.success{border-color:rgba(34,197,94,.4);color:var(--green)}
+
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+@keyframes slideIn{from{transform:translateX(20px);opacity:0}to{transform:none;opacity:1}}
+
+.no-jobs{color:var(--text3);font-size:13px;padding:12px 0}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="logo">
+    <div class="logo-icon">🎬</div>
+    <span class="logo-text">Video Generator</span>
+    <span class="logo-badge">fal.ai</span>
+  </div>
+  <div class="topbar-right">
+    <div class="api-status">
+      <div class="dot" id="apiDot"></div>
+      <span id="apiStatusText">กำลังตรวจสอบ...</span>
+    </div>
+  </div>
+</div>
+
+<!-- LAYOUT -->
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-inner">
+
+      <!-- IMAGE UPLOAD -->
+      <div class="field">
+        <div class="label">รูปต้นฉบับ</div>
+        <div id="dropZone" class="drop-zone">
+          <input type="file" id="imageInput" accept="image/*">
+          <div id="dropContent">
+            <div class="drop-icon">🖼️</div>
+            <div class="drop-text">วาง หรือ คลิกเพื่อเลือกรูป</div>
+            <div class="drop-hint">JPG, PNG, WebP — ไม่เกิน 20MB</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PROMPT -->
+      <div class="field">
+        <div class="label">
+          Prompt
+          <span class="label-hint">(ภาษาอังกฤษแนะนำ)</span>
+        </div>
+        <textarea class="textarea" id="promptInput" rows="3"
+          placeholder="Describe how you want the video to move... e.g. 'camera slowly zooms in, soft bokeh background'"></textarea>
+        <div class="char-count"><span id="charCount">0</span>/500</div>
+      </div>
+
+      <!-- MODEL -->
+      <div class="field">
+        <div class="label">Model</div>
+        <div class="model-grid" id="modelGrid"></div>
+      </div>
+
+      <!-- SETTINGS -->
+      <div class="field">
+        <div class="row2">
+          <div>
+            <div class="label">Duration</div>
+            <select class="select" id="durationSelect">
+              <option value="5">5 วินาที</option>
+              <option value="10">10 วินาที</option>
+            </select>
+          </div>
+          <div>
+            <div class="label">Aspect Ratio</div>
+            <select class="select" id="ratioSelect">
+              <option value="16:9">16:9 (landscape)</option>
+              <option value="9:16">9:16 (portrait)</option>
+              <option value="1:1">1:1 (square)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- GENERATE BUTTON -->
+      <button class="btn-generate" id="generateBtn" disabled>
+        <span>🎬</span>
+        <span id="generateBtnText">สร้างวิดีโอ</span>
+      </button>
+
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main" id="main">
+
+    <!-- ACTIVE JOBS -->
+    <div id="activeSection" style="display:none">
+      <div class="section-head">
+        <div class="section-title">กำลังประมวลผล</div>
+        <div class="section-count" id="activeCount"></div>
+      </div>
+      <div id="activeJobs"></div>
+    </div>
+
+    <!-- GALLERY -->
+    <div>
+      <div class="section-head">
+        <div class="section-title">วิดีโอทั้งหมด</div>
+        <div class="section-count" id="galleryCount"></div>
+      </div>
+      <div class="gallery-grid" id="galleryGrid">
+        <div class="empty" style="grid-column:1/-1">
+          <div class="empty-icon">🎬</div>
+          <div class="empty-text">ยังไม่มีวิดีโอ</div>
+          <div class="empty-sub">อัปโหลดรูปแล้วกด "สร้างวิดีโอ" เพื่อเริ่มต้น</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script>
+const API = '';
+let selectedModel = 'kling_pro';
+let selectedFile = null;
+let activeJobIds = new Set();
+let pollTimer = null;
+let MODELS = {};
+
+const PROGRESS = {
+  uploading: 20,
+  generating: 60,
+  saving: 85,
+  done: 100,
+  error: 100,
+};
+
+// ─── Init ───
+async function init() {
+  await loadModels();
+  await refreshJobs();
+  checkApiStatus();
+  startPolling();
+}
+
+async function checkApiStatus() {
+  try {
+    const r = await fetch(API + '/api/models');
+    const ok = r.ok;
+    document.getElementById('apiDot').className = 'dot ' + (ok ? 'green' : '');
+    document.getElementById('apiStatusText').textContent = ok ? 'Server Online' : 'Server Offline';
+  } catch {
+    document.getElementById('apiStatusText').textContent = 'Server Offline';
+  }
+}
+
+// ─── Models ───
+async function loadModels() {
+  try {
+    const r = await fetch(API + '/api/models');
+    MODELS = await r.json();
+    renderModelGrid();
+  } catch { console.error('Cannot load models'); }
+}
+
+function renderModelGrid() {
+  const grid = document.getElementById('modelGrid');
+  grid.innerHTML = Object.entries(MODELS).map(([key, m]) => `
+    <div class="model-opt ${key === selectedModel ? 'active' : ''}" onclick="selectModel('${key}')">
+      <div class="model-name">${m.label}</div>
+      <div class="model-sub">${m.durations.join(', ')}s</div>
+    </div>
+  `).join('');
+}
+
+function selectModel(key) {
+  selectedModel = key;
+  renderModelGrid();
+  const m = MODELS[key];
+  if (m) {
+    const dur = document.getElementById('durationSelect');
+    dur.innerHTML = m.durations.map(d => `<option value="${d}">${d} วินาที</option>`).join('');
+  }
+}
+
+// ─── Upload ───
+const dropZone = document.getElementById('dropZone');
+const imageInput = document.getElementById('imageInput');
+
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault(); dropZone.classList.remove('drag');
+  const file = e.dataTransfer.files[0];
+  if (file && file.type.startsWith('image/')) setFile(file);
+});
+imageInput.addEventListener('change', () => { if (imageInput.files[0]) setFile(imageInput.files[0]); });
+
+function setFile(file) {
+  selectedFile = file;
+  const url = URL.createObjectURL(file);
+  document.getElementById('dropContent').innerHTML = `
+    <div class="preview-wrap">
+      <img class="preview-img" src="${url}">
+      <button class="preview-remove" onclick="clearFile(event)">✕</button>
+    </div>
+    <div class="drop-hint" style="margin-top:6px">${file.name} · ${(file.size/1024).toFixed(0)}KB</div>
+  `;
+  checkReady();
+}
+
+function clearFile(e) {
+  e.stopPropagation();
+  selectedFile = null;
+  imageInput.value = '';
+  document.getElementById('dropContent').innerHTML = `
+    <div class="drop-icon">🖼️</div>
+    <div class="drop-text">วาง หรือ คลิกเพื่อเลือกรูป</div>
+    <div class="drop-hint">JPG, PNG, WebP — ไม่เกิน 20MB</div>
+  `;
+  checkReady();
+}
+
+// ─── Prompt ───
+document.getElementById('promptInput').addEventListener('input', function() {
+  document.getElementById('charCount').textContent = this.value.length;
+  checkReady();
+});
+
+function checkReady() {
+  document.getElementById('generateBtn').disabled = !selectedFile;
+}
+
+// ─── Generate ───
+document.getElementById('generateBtn').addEventListener('click', async () => {
+  if (!selectedFile) return;
+
+  const btn = document.getElementById('generateBtn');
+  const btnText = document.getElementById('generateBtnText');
+  btn.disabled = true;
+  btnText.innerHTML = '<div class="spinner"></div> กำลังส่ง...';
+
+  try {
+    const form = new FormData();
+    form.append('image', selectedFile);
+    form.append('prompt', document.getElementById('promptInput').value);
+    form.append('model', selectedModel);
+    form.append('duration', document.getElementById('durationSelect').value);
+    form.append('aspectRatio', document.getElementById('ratioSelect').value);
+
+    const r = await fetch(API + '/api/generate', { method: 'POST', body: form });
+    const data = await r.json();
+
+    if (data.error) throw new Error(data.error);
+
+    activeJobIds.add(data.jobId);
+    toast('เริ่มสร้างวิดีโอแล้ว! อาจใช้เวลา 1-3 นาที', 'success');
+    await refreshJobs();
+  } catch (err) {
+    toast('Error: ' + err.message, 'error');
+  } finally {
+    btn.disabled = !selectedFile;
+    btnText.textContent = 'สร้างวิดีโอ';
+  }
+});
+
+// ─── Polling ───
+function startPolling() {
+  if (pollTimer) clearInterval(pollTimer);
+  pollTimer = setInterval(async () => {
+    if (activeJobIds.size > 0) await refreshJobs();
+  }, 3000);
+}
+
+async function refreshJobs() {
+  try {
+    const r = await fetch(API + '/api/jobs');
+    const jobs = await r.json();
+    renderActiveJobs(jobs);
+    renderGallery(jobs);
+  } catch {}
+}
+
+function renderActiveJobs(jobs) {
+  const active = jobs.filter(j => j.status !== 'done' && j.status !== 'error');
+  const section = document.getElementById('activeSection');
+  const container = document.getElementById('activeJobs');
+
+  if (active.length === 0) {
+    section.style.display = 'none';
+    activeJobIds.clear();
+    return;
+  }
+
+  section.style.display = 'block';
+  document.getElementById('activeCount').textContent = `${active.length} งาน`;
+  active.forEach(j => activeJobIds.add(j.id));
+
+  container.innerHTML = active.map(job => {
+    const prog = PROGRESS[job.status] || 30;
+    const statusLabel = { uploading: 'อัปโหลดรูป...', generating: 'สร้างวิดีโอ...', saving: 'บันทึกไฟล์...' }[job.status] || job.status;
+    const lastLog = job.logs?.[job.logs.length - 1] || statusLabel;
+    return `
+      <div class="active-job">
+        <div class="job-icon gen">⚙️</div>
+        <div class="job-body">
+          <div class="job-title">${job.prompt || '(ไม่มี prompt)'}</div>
+          <div class="job-status">${lastLog}</div>
+          <div class="progress-track">
+            <div class="progress-fill" style="width:${prog}%"></div>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderGallery(jobs) {
+  const done = jobs.filter(j => j.status === 'done' || j.status === 'error');
+  const grid = document.getElementById('galleryGrid');
+  document.getElementById('galleryCount').textContent = done.length > 0 ? `${done.length} วิดีโอ` : '';
+
+  if (done.length === 0) {
+    grid.innerHTML = `
+      <div class="empty" style="grid-column:1/-1">
+        <div class="empty-icon">🎬</div>
+        <div class="empty-text">ยังไม่มีวิดีโอ</div>
+        <div class="empty-sub">อัปโหลดรูปแล้วกด "สร้างวิดีโอ" เพื่อเริ่มต้น</div>
+      </div>`;
+    return;
+  }
+
+  grid.innerHTML = done.map(job => {
+    const videoSrc = job.downloadUrl || job.falVideoUrl || '';
+    const modelLabel = MODELS[job.model]?.label || job.model;
+    const date = new Date(job.createdAt).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit', hour: '2-digit', minute: '2-digit' });
+
+    if (job.status === 'error') {
+      return `
+        <div class="video-card">
+          <div class="video-thumb" style="display:flex;align-items:center;justify-content:center">
+            <span style="font-size:32px;opacity:.4">⚠️</span>
+          </div>
+          <div class="video-info">
+            <div class="video-prompt">${job.prompt || '(ไม่มี prompt)'}</div>
+            <div style="font-size:11px;color:var(--red);margin-top:4px">${job.error || 'เกิดข้อผิดพลาด'}</div>
+            <div class="video-date">${date}</div>
+          </div>
+          <div class="video-actions">
+            <button class="btn-action" onclick="deleteJob('${job.id}')">🗑 ลบ</button>
+          </div>
+        </div>`;
+    }
+
+    return `
+      <div class="video-card">
+        <div class="video-thumb">
+          <video src="${videoSrc}" muted loop preload="metadata" id="v_${job.id}"></video>
+          <div class="play-btn" onmouseenter="playVid('${job.id}')" onmouseleave="pauseVid('${job.id}')">▶</div>
+        </div>
+        <div class="video-info">
+          <div class="video-prompt">${job.prompt || '(ไม่มี prompt)'}</div>
+          <div class="video-meta">
+            <span class="chip model">${modelLabel}</span>
+            <span class="chip dur">${job.duration}s</span>
+            <span class="chip ratio">${job.aspectRatio}</span>
+          </div>
+          <div class="video-date">${date}</div>
+        </div>
+        <div class="video-actions">
+          ${job.driveUrl ? `<a class="btn-action primary" href="${job.driveUrl}" target="_blank">📁 Drive</a>` : ''}
+          <a class="btn-action" href="${videoSrc}" download target="_blank">⬇ ดาวน์โหลด</a>
+          <button class="btn-action" onclick="deleteJob('${job.id}')">🗑</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function playVid(id) {
+  const v = document.getElementById('v_' + id);
+  if (v) v.play();
+}
+function pauseVid(id) {
+  const v = document.getElementById('v_' + id);
+  if (v) { v.pause(); v.currentTime = 0; }
+}
+
+async function deleteJob(id) {
+  if (!confirm('ลบรายการนี้ออกจาก history?')) return;
+  await fetch(API + '/api/jobs/' + id, { method: 'DELETE' });
+  await refreshJobs();
+}
+
+// ─── Toast ───
+function toast(msg, type = '') {
+  const wrap = document.getElementById('toastWrap');
+  const el = document.createElement('div');
+  el.className = 'toast ' + type;
+  el.textContent = (type === 'error' ? '⚠ ' : type === 'success' ? '✓ ' : '') + msg;
+  wrap.appendChild(el);
+  setTimeout(() => el.remove(), 4000);
+}
+
+init();
+</script>
+</body>
+</html>
