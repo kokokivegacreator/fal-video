@@ -176,8 +176,8 @@ body{background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;heigh
 .data-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .data-cell{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:12px}
 .data-cell.full{grid-column:1/-1}
-.data-cell-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);margin-bottom:4px}
-.data-cell-value{font-size:13px;color:var(--text);line-height:1.5;white-space:pre-wrap;word-break:break-word}
+.data-cell-label{font-size:15px;font-weight:800;letter-spacing:-.2px;color:var(--text);margin-bottom:8px;border-bottom:1px solid var(--border);padding-bottom:6px}
+.data-cell-value{font-size:12px;color:var(--text2);line-height:1.6;white-space:pre-wrap;word-break:break-word}
 
 .sheets-empty{text-align:center;padding:60px 20px;color:var(--text3)}
 .sheets-empty-icon{font-size:48px;margin-bottom:12px;opacity:.5}
@@ -660,7 +660,7 @@ async function loadChannels() {
 
     sel.innerHTML = '<option value="">-- เลือกช่อง --</option>' +
       channelsCache.map(ch =>
-        `<option value="${ch.rowIndex}">${escHtml(ch.name)}</option>`
+        `<option value="${ch.rowIndex}">${escHtml(ch.link || ch.name)}</option>`
       ).join('');
 
     sel.addEventListener('change', () => {
@@ -711,8 +711,8 @@ async function viewChannelData() {
 
 function renderChannelData(channel, result) {
   const main = document.getElementById('sheetsMain');
-  const name = channel ? channel.name : '—';
-  const link = channel ? channel.link : '';
+  const name = channel ? (channel.link || channel.name) : '—';
+  const link = '';
   const { d, e, f } = result.data;
   const answerE = result.answerChat.e;
 
@@ -723,19 +723,19 @@ function renderChannelData(channel, result) {
 
       <div class="data-grid">
         <div class="data-cell">
-          <div class="data-cell-label">Data — คอลัมน์ D</div>
+          <div class="data-cell-label">Hashtag ประจำช่อง</div>
           <div class="data-cell-value">${escHtml(d) || '<span style="color:var(--text3)">—</span>'}</div>
         </div>
         <div class="data-cell">
-          <div class="data-cell-label">Data — คอลัมน์ E</div>
+          <div class="data-cell-label">Style ของช่อง</div>
           <div class="data-cell-value">${escHtml(e) || '<span style="color:var(--text3)">—</span>'}</div>
         </div>
         <div class="data-cell">
-          <div class="data-cell-label">Data — คอลัมน์ F</div>
+          <div class="data-cell-label">Framework ประจำช่อง</div>
           <div class="data-cell-value">${escHtml(f) || '<span style="color:var(--text3)">—</span>'}</div>
         </div>
         <div class="data-cell">
-          <div class="data-cell-label">Answer Chat — คอลัมน์ E</div>
+          <div class="data-cell-label">สรุปผลการวิเคราะห์</div>
           <div class="data-cell-value">${escHtml(answerE) || '<span style="color:var(--text3)">—</span>'}</div>
         </div>
       </div>
