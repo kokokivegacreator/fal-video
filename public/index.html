@@ -146,6 +146,46 @@ body{background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;heigh
 @keyframes slideIn{from{transform:translateX(20px);opacity:0}to{transform:none;opacity:1}}
 
 .no-jobs{color:var(--text3);font-size:13px;padding:12px 0}
+
+/* TAB SWITCHER */
+.tab-bar{display:flex;gap:4px;padding:0 20px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0}
+.tab-btn{padding:12px 18px;font-size:13px;font-weight:600;color:var(--text3);border:none;background:transparent;cursor:pointer;border-bottom:2px solid transparent;transition:.15s;letter-spacing:-.2px}
+.tab-btn:hover{color:var(--text2)}
+.tab-btn.active{color:var(--indigo2);border-bottom-color:var(--indigo)}
+
+/* TAB PANELS */
+.tab-panel{display:none;flex:1;overflow:hidden}
+.tab-panel.active{display:flex}
+
+/* SHEETS / CHANNEL MANAGER */
+.sheets-layout{display:flex;flex:1;overflow:hidden}
+.sheets-sidebar{width:340px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;padding:16px;gap:12px}
+.sheets-main{flex:1;overflow-y:auto;padding:20px}
+.sheets-main::-webkit-scrollbar{width:4px}
+.sheets-main::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+
+.btn-view{width:100%;padding:11px;border-radius:var(--radius-lg);background:linear-gradient(135deg,#6366f1,#8b5cf6);border:none;color:#fff;font-size:14px;font-weight:700;cursor:pointer;transition:.15s;display:flex;align-items:center;justify-content:center;gap:7px}
+.btn-view:hover{opacity:.9;transform:translateY(-1px)}
+.btn-view:disabled{opacity:.4;cursor:default;transform:none}
+
+.channel-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-xl);padding:20px;display:flex;flex-direction:column;gap:14px}
+.channel-name{font-size:17px;font-weight:700;color:var(--text)}
+.channel-link a{font-size:13px;color:var(--indigo2);text-decoration:none;word-break:break-all}
+.channel-link a:hover{text-decoration:underline}
+
+.data-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.data-cell{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:12px}
+.data-cell.full{grid-column:1/-1}
+.data-cell-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);margin-bottom:4px}
+.data-cell-value{font-size:13px;color:var(--text);line-height:1.5;white-space:pre-wrap;word-break:break-word}
+
+.sheets-empty{text-align:center;padding:60px 20px;color:var(--text3)}
+.sheets-empty-icon{font-size:48px;margin-bottom:12px;opacity:.5}
+.sheets-empty-text{font-size:14px;color:var(--text2);margin-bottom:4px}
+.sheets-empty-sub{font-size:12px}
+
+.sheets-loading{display:flex;align-items:center;justify-content:center;padding:40px;gap:10px;color:var(--text3)}
+.sheets-loading .spin{width:18px;height:18px;border:2px solid var(--border2);border-top-color:var(--indigo);border-radius:50%;animation:spin .6s linear infinite}
 </style>
 </head>
 <body>
@@ -165,6 +205,14 @@ body{background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;heigh
   </div>
 </div>
 
+<!-- TAB BAR -->
+<div class="tab-bar">
+  <button class="tab-btn active" id="tabBtn1" onclick="switchTab(1)">🎬 สร้างวิดีโอ</button>
+  <button class="tab-btn" id="tabBtn2" onclick="switchTab(2)">📋 จัดการช่อง</button>
+</div>
+
+<!-- TAB 1: VIDEO GENERATOR -->
+<div class="tab-panel active" id="tabPanel1">
 <!-- LAYOUT -->
 <div class="layout">
 
@@ -261,6 +309,39 @@ body{background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;heigh
 
   </div>
 </div>
+
+</div><!-- /tab-panel1 -->
+
+<!-- TAB 2: CHANNEL MANAGER -->
+<div class="tab-panel" id="tabPanel2">
+  <div class="sheets-layout">
+
+    <!-- SHEETS SIDEBAR -->
+    <div class="sheets-sidebar">
+      <div class="field">
+        <div class="label">ช่อง</div>
+        <select class="select" id="channelSelect" style="width:100%">
+          <option value="">-- กำลังโหลด... --</option>
+        </select>
+      </div>
+      <button class="btn-view" id="viewChannelBtn" onclick="viewChannelData()" disabled>
+        <span>📊</span>
+        <span id="viewBtnText">ดูข้อมูล</span>
+      </button>
+      <div style="font-size:11px;color:var(--text3);margin-top:4px" id="sheetsStatus"></div>
+    </div>
+
+    <!-- SHEETS MAIN -->
+    <div class="sheets-main" id="sheetsMain">
+      <div class="sheets-empty">
+        <div class="sheets-empty-icon">📋</div>
+        <div class="sheets-empty-text">เลือกช่องเพื่อดูข้อมูล</div>
+        <div class="sheets-empty-sub">เลือกช่องจากรายการทางซ้าย แล้วกด "ดูข้อมูล"</div>
+      </div>
+    </div>
+
+  </div>
+</div><!-- /tab-panel2 -->
 
 <!-- TOAST -->
 <div class="toast-wrap" id="toastWrap"></div>
@@ -545,6 +626,125 @@ function toast(msg, type = '') {
   el.textContent = (type === 'error' ? '⚠ ' : type === 'success' ? '✓ ' : '') + msg;
   wrap.appendChild(el);
   setTimeout(() => el.remove(), 4000);
+}
+
+// ─── Tab Switcher ───
+function switchTab(n) {
+  document.querySelectorAll('.tab-btn').forEach((b, i) => b.classList.toggle('active', i + 1 === n));
+  document.querySelectorAll('.tab-panel').forEach((p, i) => p.classList.toggle('active', i + 1 === n));
+  if (n === 2 && document.getElementById('channelSelect').options[0]?.value === '') {
+    loadChannels();
+  }
+}
+
+// ─── Sheets / Channel Manager ───
+let channelsCache = [];
+
+async function loadChannels() {
+  const sel = document.getElementById('channelSelect');
+  const statusEl = document.getElementById('sheetsStatus');
+  sel.innerHTML = '<option value="">-- กำลังโหลด... --</option>';
+  document.getElementById('viewChannelBtn').disabled = true;
+  statusEl.textContent = '';
+
+  try {
+    const r = await fetch(API + '/api/sheets/channels');
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    channelsCache = await r.json();
+
+    if (channelsCache.length === 0) {
+      sel.innerHTML = '<option value="">-- ไม่พบข้อมูลช่อง --</option>';
+      statusEl.textContent = 'ไม่พบข้อมูลในชีต';
+      return;
+    }
+
+    sel.innerHTML = '<option value="">-- เลือกช่อง --</option>' +
+      channelsCache.map(ch =>
+        `<option value="${ch.rowIndex}">${escHtml(ch.name)}</option>`
+      ).join('');
+
+    sel.addEventListener('change', () => {
+      document.getElementById('viewChannelBtn').disabled = !sel.value;
+    });
+
+    statusEl.textContent = `โหลดแล้ว ${channelsCache.length} ช่อง`;
+  } catch (err) {
+    sel.innerHTML = '<option value="">-- โหลดไม่สำเร็จ --</option>';
+    statusEl.textContent = 'Error: ' + err.message;
+    toast('โหลดรายชื่อช่องไม่สำเร็จ: ' + err.message, 'error');
+  }
+}
+
+async function viewChannelData() {
+  const sel = document.getElementById('channelSelect');
+  const rowIndex = sel.value;
+  if (!rowIndex) return;
+
+  const btn = document.getElementById('viewChannelBtn');
+  const btnText = document.getElementById('viewBtnText');
+  const main = document.getElementById('sheetsMain');
+
+  btn.disabled = true;
+  btnText.innerHTML = '<div class="spin"></div>';
+  main.innerHTML = '<div class="sheets-loading"><div class="spin"></div> กำลังโหลด...</div>';
+
+  try {
+    const channel = channelsCache.find(ch => ch.rowIndex === Number(rowIndex));
+    const r = await fetch(API + '/api/sheets/data?row=' + rowIndex);
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const result = await r.json();
+    if (result.error) throw new Error(result.error);
+
+    renderChannelData(channel, result);
+  } catch (err) {
+    main.innerHTML = `<div class="sheets-empty">
+      <div class="sheets-empty-icon">⚠️</div>
+      <div class="sheets-empty-text">โหลดข้อมูลไม่สำเร็จ</div>
+      <div class="sheets-empty-sub">${escHtml(err.message)}</div>
+    </div>`;
+    toast('โหลดข้อมูลช่องไม่สำเร็จ: ' + err.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btnText.textContent = 'ดูข้อมูล';
+  }
+}
+
+function renderChannelData(channel, result) {
+  const main = document.getElementById('sheetsMain');
+  const name = channel ? channel.name : '—';
+  const link = channel ? channel.link : '';
+  const { d, e, f } = result.data;
+  const answerE = result.answerChat.e;
+
+  main.innerHTML = `
+    <div class="channel-card">
+      <div class="channel-name">${escHtml(name)}</div>
+      ${link ? `<div class="channel-link"><a href="${escHtml(link)}" target="_blank" rel="noopener">🔗 ${escHtml(link)}</a></div>` : ''}
+
+      <div class="data-grid">
+        <div class="data-cell">
+          <div class="data-cell-label">Data — คอลัมน์ D</div>
+          <div class="data-cell-value">${escHtml(d) || '<span style="color:var(--text3)">—</span>'}</div>
+        </div>
+        <div class="data-cell">
+          <div class="data-cell-label">Data — คอลัมน์ E</div>
+          <div class="data-cell-value">${escHtml(e) || '<span style="color:var(--text3)">—</span>'}</div>
+        </div>
+        <div class="data-cell">
+          <div class="data-cell-label">Data — คอลัมน์ F</div>
+          <div class="data-cell-value">${escHtml(f) || '<span style="color:var(--text3)">—</span>'}</div>
+        </div>
+        <div class="data-cell">
+          <div class="data-cell-label">Answer Chat — คอลัมน์ E</div>
+          <div class="data-cell-value">${escHtml(answerE) || '<span style="color:var(--text3)">—</span>'}</div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function escHtml(str) {
+  return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 init();

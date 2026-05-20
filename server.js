@@ -7,6 +7,7 @@ const fs = require('fs');
 const path = require('path');
 const falService = require('./services/fal');
 const driveService = require('./services/drive');
+const sheetsService = require('./services/sheets');
 
 const app = express();
 const PORT = process.env.PORT || 3100;
@@ -20,6 +21,7 @@ const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 20 
 
 falService.init();
 driveService.init();
+sheetsService.init();
 
 // ─── Jobs Store ───
 function loadJobs() {
@@ -38,6 +40,30 @@ function upsertJob(job) {
   else jobs.unshift(job);
   saveJobs(jobs);
 }
+
+// ─── GET /api/sheets/channels ───
+app.get('/api/sheets/channels', async (req, res) => {
+  try {
+    const channels = await sheetsService.getChannels();
+    res.json(channels);
+  } catch (err) {
+    console.error('[Sheets] getChannels error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── GET /api/sheets/data?row=N ───
+app.get('/api/sheets/data', async (req, res) => {
+  const { row } = req.query;
+  if (!row) return res.status(400).json({ error: 'Missing ?row=N parameter' });
+  try {
+    const data = await sheetsService.getChannelData(row);
+    res.json(data);
+  } catch (err) {
+    console.error('[Sheets] getChannelData error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
 
 // ─── GET /api/models ───
 app.get('/api/models', (req, res) => {
