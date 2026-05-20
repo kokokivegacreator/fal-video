@@ -26,7 +26,7 @@ echo "=== 4. Clone / update app ==="
 if [ -d "$APP_DIR/.git" ]; then
   cd $APP_DIR && git pull
 else
-  git clone https://github.com/YOUR_USERNAME/fal-video.git $APP_DIR
+  git clone https://github.com/kokokivegacreator/fal-video.git $APP_DIR
   cd $APP_DIR
 fi
 
