@@ -10,41 +10,6 @@ const MODELS = {
     imageAsArray: true,
     durationSuffix: 's',
   },
-  kling_pro: {
-    id: 'fal-ai/kling-video/v1.6/pro/image-to-video',
-    label: 'Kling v1.6 Pro',
-    maxDuration: 10,
-    durations: [5, 10],
-    imageKey: 'image_url',
-  },
-  kling_std: {
-    id: 'fal-ai/kling-video/v1.6/standard/image-to-video',
-    label: 'Kling v1.6 Standard',
-    maxDuration: 10,
-    durations: [5, 10],
-    imageKey: 'image_url',
-  },
-  luma: {
-    id: 'fal-ai/luma-dream-machine/image-to-video',
-    label: 'Luma Dream Machine',
-    maxDuration: 5,
-    durations: [5],
-    imageKey: 'image_url',
-  },
-  minimax: {
-    id: 'fal-ai/minimax-video-01/image-to-video',
-    label: 'MiniMax Video-01',
-    maxDuration: 6,
-    durations: [6],
-    imageKey: 'image_url',
-  },
-  wan: {
-    id: 'fal-ai/wan-i2v',
-    label: 'WAN Image-to-Video',
-    maxDuration: 5,
-    durations: [5],
-    imageKey: 'image_url',
-  },
 };
 
 function init() {
@@ -59,7 +24,7 @@ async function uploadImageToFal(buffer, mimeType, filename) {
 }
 
 async function generateVideo({ imageUrl, prompt, model, duration, aspectRatio, onQueueUpdate }) {
-  const modelConfig = MODELS[model] || MODELS.kling_pro;
+  const modelConfig = MODELS[model] || MODELS.veo3;
 
   const imageKey = modelConfig.imageKey || 'image_url';
   const imageValue = modelConfig.imageAsArray ? [imageUrl] : imageUrl;
