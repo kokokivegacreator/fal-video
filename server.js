@@ -112,7 +112,7 @@ app.delete('/api/jobs/:id', (req, res) => {
 // ─── POST /api/generate ───
 app.post('/api/generate', upload.single('image'), async (req, res) => {
   const jobId = uuidv4().split('-')[0];
-  const { prompt = '', model = 'kling_pro', duration = '5', aspectRatio = '16:9' } = req.body;
+  const { prompt = '', model = 'kling_pro', duration = '5', aspectRatio = '16:9', productName = '' } = req.body;
 
   if (!req.file) return res.status(400).json({ error: 'No image uploaded' });
 
@@ -120,6 +120,7 @@ app.post('/api/generate', upload.single('image'), async (req, res) => {
     id: jobId,
     status: 'uploading',
     prompt,
+    productName,
     model,
     duration: Number(duration),
     aspectRatio,

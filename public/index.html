@@ -295,6 +295,16 @@ body{background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;heigh
         </div>
       </div>
 
+      <!-- PRODUCT NAME -->
+      <div class="field">
+        <div class="label">ชื่อสินค้า</div>
+        <div class="channel-search-wrap">
+          <input class="channel-search-input" type="text" id="productNameInput"
+            placeholder="ค้นหาหรือพิมพ์ชื่อสินค้า..." autocomplete="off">
+          <div class="channel-suggest-drop" id="productSuggestDrop"></div>
+        </div>
+      </div>
+
       <!-- GENERATE BUTTON -->
       <button class="btn-generate" id="generateBtn" disabled>
         <span>🎬</span>
@@ -321,6 +331,11 @@ body{background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;heigh
       <div class="section-head">
         <div class="section-title">วิดีโอทั้งหมด</div>
         <div class="section-count" id="galleryCount"></div>
+      </div>
+      <div style="margin-bottom:14px">
+        <input class="channel-search-input" type="text" id="videoSearchInput"
+          placeholder="ค้นหาจากชื่อสินค้า..." autocomplete="off"
+          oninput="filterGallery(this.value)">
       </div>
       <div class="gallery-grid" id="galleryGrid">
         <div class="empty" style="grid-column:1/-1">
@@ -516,6 +531,7 @@ document.getElementById('generateBtn').addEventListener('click', async () => {
     const form = new FormData();
     form.append('image', selectedFile);
     form.append('prompt', document.getElementById('promptInput').value);
+    form.append('productName', document.getElementById('productNameInput').value.trim());
     form.append('model', selectedModel);
     form.append('duration', document.getElementById('durationSelect').value);
     form.append('aspectRatio', document.getElementById('ratioSelect').value);
@@ -587,7 +603,18 @@ function renderActiveJobs(jobs) {
   }).join('');
 }
 
-function renderGallery(jobs) {
+let allJobsCache = [];
+
+function filterGallery(q) {
+  const lower = q.toLowerCase().trim();
+  const filtered = lower
+    ? allJobsCache.filter(j => (j.productName || '').toLowerCase().includes(lower))
+    : allJobsCache;
+  renderGallery(filtered, true);
+}
+
+function renderGallery(jobs, skipCache) {
+  if (!skipCache) { allJobsCache = jobs; document.getElementById('videoSearchInput').value = ''; }
   const done = jobs.filter(j => j.status === 'done' || j.status === 'error');
   const grid = document.getElementById('galleryGrid');
   document.getElementById('galleryCount').textContent = done.length > 0 ? `${done.length} วิดีโอ` : '';
