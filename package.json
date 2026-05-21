@@ -1,7 +1,7 @@
 {
-  "name": "fal-video-generator",
+  "name": "vega-system",
   "version": "1.0.0",
-  "description": "fal.ai Image-to-Video Generator with Google Drive storage",
+  "description": "VEGA SYSTEM — ระบบรวมฟีเจอร์สำหรับทีม MCN",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

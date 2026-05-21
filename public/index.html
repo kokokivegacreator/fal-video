@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>fal.ai Video Generator</title>
+<title>VEGA SYSTEM</title>
 <style>
 :root{
   --bg:#0f0f13;--bg2:#16161d;--bg3:#1e1e28;--card:#1c1c26;
@@ -186,6 +186,30 @@ body{background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;heigh
 
 .sheets-loading{display:flex;align-items:center;justify-content:center;padding:40px;gap:10px;color:var(--text3)}
 .sheets-loading .spin{width:18px;height:18px;border:2px solid var(--border2);border-top-color:var(--indigo);border-radius:50%;animation:spin .6s linear infinite}
+
+.reg-layout{display:flex;flex:1;overflow:hidden;align-items:flex-start;justify-content:center;padding:40px 20px}
+.reg-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-xl);padding:28px;width:100%;max-width:480px;display:flex;flex-direction:column;gap:20px}
+.reg-title{font-size:16px;font-weight:700;color:var(--text);border-bottom:1px solid var(--border);padding-bottom:14px}
+.input{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:9px 11px;font-size:13px;outline:none;transition:.2s}
+.input:focus{border-color:var(--indigo);box-shadow:0 0 0 3px rgba(99,102,241,.15)}
+.input::placeholder{color:var(--text3)}
+.reg-feedback{font-size:12px;padding:9px 12px;border-radius:var(--radius);display:none}
+.reg-feedback.success{display:block;background:var(--green-bg);color:var(--green);border:1px solid rgba(34,197,94,.25)}
+.reg-feedback.error{display:block;background:var(--red-bg);color:var(--red);border:1px solid rgba(239,68,68,.25)}
+
+/* CHANNEL SEARCH AUTOCOMPLETE */
+.channel-search-wrap{position:relative;width:100%}
+.channel-search-input{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:9px 11px;font-size:13px;outline:none;transition:.2s}
+.channel-search-input:focus{border-color:var(--indigo);box-shadow:0 0 0 3px rgba(99,102,241,.15)}
+.channel-search-input::placeholder{color:var(--text3)}
+.channel-suggest-drop{display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);z-index:100;max-height:220px;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+.channel-suggest-drop::-webkit-scrollbar{width:4px}
+.channel-suggest-drop::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+.channel-suggest-drop.open{display:block}
+.channel-suggest-item{padding:9px 12px;font-size:13px;color:var(--text);cursor:pointer;transition:.12s;border-bottom:1px solid var(--border)}
+.channel-suggest-item:last-child{border-bottom:none}
+.channel-suggest-item:hover,.channel-suggest-item.focused{background:var(--indigo-bg);color:var(--indigo2)}
+.channel-suggest-empty{padding:10px 12px;font-size:12px;color:var(--text3);text-align:center}
 </style>
 </head>
 <body>
@@ -193,9 +217,9 @@ body{background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;heigh
 <!-- TOPBAR -->
 <div class="topbar">
   <div class="logo">
-    <div class="logo-icon">🎬</div>
-    <span class="logo-text">Video Generator</span>
-    <span class="logo-badge">fal.ai</span>
+    <div class="logo-icon">⚡</div>
+    <span class="logo-text">VEGA SYSTEM</span>
+    <span class="logo-badge">MCN</span>
   </div>
   <div class="topbar-right">
     <div class="api-status">
@@ -208,7 +232,7 @@ body{background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;heigh
 <!-- TAB BAR -->
 <div class="tab-bar">
   <button class="tab-btn active" id="tabBtn1" onclick="switchTab(1)">🎬 สร้างวิดีโอ</button>
-  <button class="tab-btn" id="tabBtn2" onclick="switchTab(2)">📋 จัดการช่อง</button>
+  <button class="tab-btn" id="tabBtn2" onclick="switchTab(2)">📡 Channel Scan</button>
 </div>
 
 <!-- TAB 1: VIDEO GENERATOR -->
@@ -320,15 +344,35 @@ body{background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;heigh
     <div class="sheets-sidebar">
       <div class="field">
         <div class="label">ช่อง</div>
-        <select class="select" id="channelSelect" style="width:100%">
-          <option value="">-- กำลังโหลด... --</option>
-        </select>
+        <div class="channel-search-wrap">
+          <input class="channel-search-input" type="text" id="channelSearchInput"
+            placeholder="ค้นหาชื่อช่อง..." autocomplete="off">
+          <div class="channel-suggest-drop" id="channelSuggestDrop"></div>
+        </div>
       </div>
       <button class="btn-view" id="viewChannelBtn" onclick="viewChannelData()" disabled>
         <span>📊</span>
         <span id="viewBtnText">ดูข้อมูล</span>
       </button>
       <div style="font-size:11px;color:var(--text3);margin-top:4px" id="sheetsStatus"></div>
+
+      <!-- REGISTER CHANNEL FORM -->
+      <div style="border-top:1px solid var(--border);margin-top:8px;padding-top:14px;display:flex;flex-direction:column;gap:10px">
+        <div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px">ลงทะเบียนช่องใหม่</div>
+        <div class="field" style="margin-bottom:0">
+          <div class="label">ชื่อช่อง</div>
+          <input class="input" type="text" id="regNameChanel" placeholder="กรอกชื่อช่อง">
+        </div>
+        <div class="field" style="margin-bottom:0">
+          <div class="label">Link TikTok</div>
+          <input class="input" type="text" id="regLinkTiktok" placeholder="https://www.tiktok.com/@...">
+        </div>
+        <div class="reg-feedback" id="regFeedback"></div>
+        <button class="btn-generate" id="regSubmitBtn" onclick="submitRegisterChannel()">
+          <span>➕</span>
+          <span id="regBtnText">ลงทะเบียนช่อง</span>
+        </button>
+      </div>
     </div>
 
     <!-- SHEETS MAIN -->
@@ -348,6 +392,7 @@ body{background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;heigh
 
 <script>
 const API = '';
+const WEBHOOK_CHANNEL_URL = 'https://n8n.vegacreatorthailand.com/webhook/vegachannelscan';
 let selectedModel = 'veo3';
 let selectedFile = null;
 let activeJobIds = new Set();
@@ -632,18 +677,130 @@ function toast(msg, type = '') {
 function switchTab(n) {
   document.querySelectorAll('.tab-btn').forEach((b, i) => b.classList.toggle('active', i + 1 === n));
   document.querySelectorAll('.tab-panel').forEach((p, i) => p.classList.toggle('active', i + 1 === n));
-  if (n === 2 && document.getElementById('channelSelect').options[0]?.value === '') {
+  if (n === 2 && channelsCache.length === 0) {
     loadChannels();
+  }
+}
+
+// ─── Register Channel ───
+async function submitRegisterChannel() {
+  const namechanel = document.getElementById('regNameChanel').value.trim();
+  const linktiktok = document.getElementById('regLinkTiktok').value.trim();
+  const feedback = document.getElementById('regFeedback');
+  const btn = document.getElementById('regSubmitBtn');
+  const btnText = document.getElementById('regBtnText');
+
+  feedback.className = 'reg-feedback';
+  feedback.textContent = '';
+
+  if (!namechanel || !linktiktok) {
+    feedback.className = 'reg-feedback error';
+    feedback.textContent = 'กรุณากรอกข้อมูลให้ครบทุกช่อง';
+    return;
+  }
+
+  btn.disabled = true;
+  btnText.innerHTML = '<div class="spinner"></div> กำลังส่ง...';
+
+  try {
+    const r = await fetch(`${API}/api/channel/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ namechanel, linktiktok }),
+    });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    feedback.className = 'reg-feedback success';
+    feedback.textContent = 'ลงทะเบียนช่องสำเร็จแล้ว!';
+    document.getElementById('regNameChanel').value = '';
+    document.getElementById('regLinkTiktok').value = '';
+    toast('ลงทะเบียนช่องสำเร็จ!', 'success');
+  } catch (err) {
+    feedback.className = 'reg-feedback error';
+    feedback.textContent = 'เกิดข้อผิดพลาด: ' + err.message;
+    toast('ลงทะเบียนไม่สำเร็จ: ' + err.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btnText.textContent = 'ลงทะเบียนช่อง';
   }
 }
 
 // ─── Sheets / Channel Manager ───
 let channelsCache = [];
+let selectedChannelRowIndex = null;
+
+// Autocomplete search logic
+(function initChannelSearch() {
+  // Defer until DOM is ready — called after DOMContentLoaded via init()
+  document.addEventListener('DOMContentLoaded', setupChannelSearch);
+  // Also run immediately in case DOMContentLoaded already fired
+  if (document.readyState !== 'loading') setupChannelSearch();
+})();
+
+function setupChannelSearch() {
+  const input = document.getElementById('channelSearchInput');
+  const drop = document.getElementById('channelSuggestDrop');
+  if (!input || !drop) return;
+
+  input.addEventListener('input', () => {
+    const q = input.value.trim();
+    if (!q) {
+      selectedChannelRowIndex = null;
+      document.getElementById('viewChannelBtn').disabled = true;
+      hideDrop();
+      return;
+    }
+    // If user edits after selecting, clear stored selection
+    selectedChannelRowIndex = null;
+    document.getElementById('viewChannelBtn').disabled = true;
+    showSuggestions(q);
+  });
+
+  input.addEventListener('focus', () => {
+    if (input.value.trim() && channelsCache.length) showSuggestions(input.value.trim());
+  });
+
+  // Close dropdown on outside click
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.channel-search-wrap')) hideDrop();
+  });
+}
+
+function showSuggestions(q) {
+  const drop = document.getElementById('channelSuggestDrop');
+  if (!drop) return;
+  const lower = q.toLowerCase();
+  const matches = channelsCache.filter(ch => (ch.link || ch.name || '').toLowerCase().includes(lower));
+
+  if (matches.length === 0) {
+    drop.innerHTML = '<div class="channel-suggest-empty">ไม่พบช่องที่ตรงกัน</div>';
+  } else {
+    drop.innerHTML = matches.map(ch => {
+      const label = escHtml(ch.link || ch.name);
+      return `<div class="channel-suggest-item" data-row="${ch.rowIndex}" onclick="selectSuggestion(${ch.rowIndex})">${label}</div>`;
+    }).join('');
+  }
+  drop.classList.add('open');
+}
+
+function hideDrop() {
+  const drop = document.getElementById('channelSuggestDrop');
+  if (drop) drop.classList.remove('open');
+}
+
+function selectSuggestion(rowIndex) {
+  const ch = channelsCache.find(c => c.rowIndex === rowIndex);
+  if (!ch) return;
+  const input = document.getElementById('channelSearchInput');
+  input.value = ch.link || ch.name;
+  selectedChannelRowIndex = rowIndex;
+  document.getElementById('viewChannelBtn').disabled = false;
+  hideDrop();
+}
 
 async function loadChannels() {
-  const sel = document.getElementById('channelSelect');
+  const input = document.getElementById('channelSearchInput');
   const statusEl = document.getElementById('sheetsStatus');
-  sel.innerHTML = '<option value="">-- กำลังโหลด... --</option>';
+  if (input) input.placeholder = 'กำลังโหลด...';
   document.getElementById('viewChannelBtn').disabled = true;
   statusEl.textContent = '';
 
@@ -652,32 +809,23 @@ async function loadChannels() {
     if (!r.ok) throw new Error('HTTP ' + r.status);
     channelsCache = await r.json();
 
+    if (input) input.placeholder = channelsCache.length === 0 ? 'ไม่พบข้อมูลช่อง' : 'ค้นหาชื่อช่อง...';
+
     if (channelsCache.length === 0) {
-      sel.innerHTML = '<option value="">-- ไม่พบข้อมูลช่อง --</option>';
       statusEl.textContent = 'ไม่พบข้อมูลในชีต';
       return;
     }
 
-    sel.innerHTML = '<option value="">-- เลือกช่อง --</option>' +
-      channelsCache.map(ch =>
-        `<option value="${ch.rowIndex}">${escHtml(ch.link || ch.name)}</option>`
-      ).join('');
-
-    sel.addEventListener('change', () => {
-      document.getElementById('viewChannelBtn').disabled = !sel.value;
-    });
-
     statusEl.textContent = `โหลดแล้ว ${channelsCache.length} ช่อง`;
   } catch (err) {
-    sel.innerHTML = '<option value="">-- โหลดไม่สำเร็จ --</option>';
+    if (input) input.placeholder = 'โหลดไม่สำเร็จ';
     statusEl.textContent = 'Error: ' + err.message;
     toast('โหลดรายชื่อช่องไม่สำเร็จ: ' + err.message, 'error');
   }
 }
 
 async function viewChannelData() {
-  const sel = document.getElementById('channelSelect');
-  const rowIndex = sel.value;
+  const rowIndex = selectedChannelRowIndex;
   if (!rowIndex) return;
 
   const btn = document.getElementById('viewChannelBtn');
@@ -689,7 +837,7 @@ async function viewChannelData() {
   main.innerHTML = '<div class="sheets-loading"><div class="spin"></div> กำลังโหลด...</div>';
 
   try {
-    const channel = channelsCache.find(ch => ch.rowIndex === Number(rowIndex));
+    const channel = channelsCache.find(ch => ch.rowIndex === rowIndex);
     const r = await fetch(API + '/api/sheets/data?row=' + rowIndex);
     if (!r.ok) throw new Error('HTTP ' + r.status);
     const result = await r.json();

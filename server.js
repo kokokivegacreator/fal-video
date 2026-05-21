@@ -41,6 +41,26 @@ function upsertJob(job) {
   saveJobs(jobs);
 }
 
+// ─── POST /api/channel/register ───
+const WEBHOOK_CHANNEL_URL = 'https://n8n.vegacreatorthailand.com/webhook/vegachannelscan';
+
+app.post('/api/channel/register', async (req, res) => {
+  const { namechanel, linktiktok } = req.body;
+  if (!namechanel || !linktiktok) return res.status(400).json({ error: 'Missing namechanel or linktiktok' });
+  try {
+    const response = await fetch(WEBHOOK_CHANNEL_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ namechanel, linktiktok }),
+    });
+    const text = await response.text();
+    res.status(response.status).send(text);
+  } catch (err) {
+    console.error('[Channel] webhook error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ─── GET /api/sheets/channels ───
 app.get('/api/sheets/channels', async (req, res) => {
   try {
